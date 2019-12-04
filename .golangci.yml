@@ -131,6 +131,7 @@ linters:
     - wsl
     - godox
     - errcheck
+    - gosimple
   # disable-all: false
   # presets:
   #   - bugs
@@ -143,8 +144,6 @@ issues:
   # it can be disabled by `exclude-use-default: false`. To list all
   # excluded by default patterns execute `golangci-lint run --help`
   exclude:
-    - Error return value of .((os\.)?std(out|err)\..*|.*Close|.*Flush|os\.Remove(All)?|.*printf?|os\.(Un)?Setenv). is not checked
-    - lines are duplicate of.*_test\.go
 
   # Independently from option `exclude` we use default exclude patterns,
   # it can be disabled by this option. To list all
