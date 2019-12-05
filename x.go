@@ -33,7 +33,7 @@ func (x *X) Execute() error {
 		log(x.ctx).Warn("nothing to execute...")
 		return nil
 	}
-	log(x.ctx).Infof("starting execution of %d executables...", len(x.executables))
+	log(x.ctx).Infof("starting execution of %d executables...", len(x.executables)-1)
 
 	if x.concurrent {
 		if x.dispatcher != nil {
@@ -44,10 +44,12 @@ func (x *X) Execute() error {
 		return nil
 	}
 	for _, exec := range x.executables {
-		if err := exec.Execute(); err != nil {
-			log(x.ctx).Errorf("error encountered: %+v", err)
-			x.OnFailure(err)
-			return err
+		if !exec.IsCompleted() {
+			if err := exec.Execute(); err != nil {
+				log(x.ctx).Errorf("error encountered: %+v", err)
+				x.OnFailure(err)
+				return err
+			}
 		}
 	}
 	return nil
@@ -70,7 +72,9 @@ func (x *X) IsCompleted() bool {
 
 func (x *X) executeDispatch() {
 	for _, exec := range x.executables {
-		x.dispatcher.input <- exec
+		if !exec.IsCompleted() {
+			x.dispatcher.Input() <- exec
+		}
 	}
 }
 
@@ -78,10 +82,13 @@ func (x *X) executeWg() {
 	x.wg.Add(len(x.executables))
 	for i := 0; i < len(x.executables); i++ {
 		go func(i int) {
+			defer recoverPanic(x.ctx, x.executables[i])
 			defer x.wg.Done()
-			if err := x.executables[i].Execute(); err != nil {
-				log(x.ctx).Errorf("error encountered: %+v", err)
-				x.executables[i].OnFailure(err)
+			if !x.executables[i].IsCompleted() {
+				if err := x.executables[i].Execute(); err != nil {
+					log(x.ctx).Errorf("error encountered: %+v", err)
+					x.executables[i].OnFailure(err)
+				}
 			}
 			x.executables[i].OnSuccess()
 		}(i)
