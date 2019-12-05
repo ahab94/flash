@@ -22,6 +22,6 @@ func log(ctx context.Context) *logs.Entry {
 	}
 
 	return logger.WithFields(logs.Fields{
-		"package": "X",
+		"package": "xcruncher",
 	})
 }

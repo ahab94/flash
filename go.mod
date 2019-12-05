@@ -1,4 +1,4 @@
-module github.com/ahab94/xflow
+module github.com/ahab94/x-cruncher
 
 go 1.12
 
