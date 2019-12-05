@@ -1,4 +1,4 @@
-package xcruncher
+package flash
 
 import (
 	"context"
@@ -12,7 +12,7 @@ type Dispatcher struct {
 	stop    chan struct{}
 	pool    chan chan Executable
 	input   chan Executable
-	workers []*worker
+	workers []*Worker
 	counter *counter
 	start   *sync.Once
 }
@@ -31,7 +31,7 @@ func (d *Dispatcher) Start(workerCount uint) {
 		d.stop = make(chan struct{})
 		d.pool = make(chan chan Executable)
 		d.input = make(chan Executable)
-		d.workers = make([]*worker, 0)
+		d.workers = make([]*Worker, 0)
 		d.counter = new(counter)
 
 		for i := 0; i <= int(workerCount); i++ {

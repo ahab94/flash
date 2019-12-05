@@ -1,4 +1,4 @@
-module github.com/ahab94/x-cruncher
+module github.com/ahab94/flash
 
 go 1.12
 

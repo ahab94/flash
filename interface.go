@@ -1,4 +1,4 @@
-package xcruncher
+package flash
 
 // Executable - interface for executables
 type Executable interface {

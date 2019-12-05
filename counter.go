@@ -1,4 +1,4 @@
-package xcruncher
+package flash
 
 import "sync"
 

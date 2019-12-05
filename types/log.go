@@ -1,4 +1,4 @@
-package flash
+package types
 
 import (
 	"context"
@@ -22,6 +22,6 @@ func log(ctx context.Context) *logs.Entry {
 	}
 
 	return logger.WithFields(logs.Fields{
-		"package": "flash",
+		"package": "flash/types",
 	})
 }
