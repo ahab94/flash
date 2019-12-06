@@ -1,4 +1,4 @@
-package types
+package executors
 
 import (
 	"context"
@@ -16,12 +16,13 @@ func init() {
 	})
 }
 
-func log(ctx context.Context) *logs.Entry {
+func log(ctx context.Context, executor string) *logs.Entry {
 	if ctx != nil {
 		logger.WithContext(ctx)
 	}
 
 	return logger.WithFields(logs.Fields{
-		"package": "flash/types",
+		"package":  "executors",
+		"executor": executor,
 	})
 }
