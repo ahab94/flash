@@ -2,12 +2,16 @@ package flash
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Dispatcher - for creating workers and distributing jobs
 type Dispatcher struct {
+	id      string
 	ctx     context.Context
 	stop    chan struct{}
 	pool    chan chan Executable
@@ -20,6 +24,7 @@ type Dispatcher struct {
 // NewDispatcher - initializing a new dispatcher
 func NewDispatcher(ctx context.Context) *Dispatcher {
 	return &Dispatcher{
+		id:    fmt.Sprintf("%s-%s", "dispatcher", uuid.NewV4().String()),
 		ctx:   ctx,
 		start: new(sync.Once),
 	}
@@ -35,7 +40,7 @@ func (d *Dispatcher) Start(workerCount uint) {
 		d.counter = new(counter)
 
 		for i := 0; i <= int(workerCount); i++ {
-			worker := NewWorker(d.ctx, i, d.pool, d.counter)
+			worker := NewWorker(d.ctx, d.pool, d.counter)
 			d.workers = append(d.workers, worker)
 			worker.Start()
 		}
@@ -75,12 +80,12 @@ func (d *Dispatcher) dispatch() {
 	for {
 		select {
 		case work := <-d.input:
-			log(d.ctx).Debugf("dispatching work: %v", work)
+			log(d.id).Debugf("dispatching: %v", work)
 			worker := <-d.pool
 			worker <- work
 
 		case <-d.stop:
-			log(d.ctx).Debugf("dispatcher stopping...")
+			log(d.id).Debugf("stopping...")
 			return
 		}
 	}

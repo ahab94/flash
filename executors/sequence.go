@@ -2,6 +2,9 @@ package executors
 
 import (
 	"context"
+	"fmt"
+
+	uuid "github.com/satori/go.uuid"
 )
 
 // Sequence is an executor for sequential executions
@@ -13,8 +16,8 @@ type Sequence struct {
 func NewSequence(ctx context.Context) *Sequence {
 	return &Sequence{
 		executor: executor{
-			name: "sequence",
-			ctx:  ctx,
+			id:  fmt.Sprintf("%s-%s", "sequence", uuid.NewV4().String()),
+			ctx: ctx,
 		},
 	}
 }
@@ -28,10 +31,11 @@ func (s *Sequence) Execute() error {
 	for _, exec := range s.executables {
 		if !exec.IsCompleted() {
 			if err := exec.Execute(); err != nil {
-				log(s.ctx, s.name).Errorf("error encountered: %+v", err)
+				log(s.id).Errorf("error while executing: %+v", err)
 				exec.OnFailure(err)
 				return err
 			}
+			log(s.id).Infof("completed executing: %+v", exec)
 			exec.OnSuccess()
 		}
 	}

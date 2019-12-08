@@ -1,27 +1,22 @@
 package flash
 
 import (
-	"context"
-
 	logs "github.com/sirupsen/logrus"
 )
 
 var logger *logs.Logger
 
 func init() {
-	logger = logs.New()
-
-	logger.SetFormatter(&logs.TextFormatter{
-		FullTimestamp: true,
-	})
+	SetLogger(logs.New())
 }
 
-func log(ctx context.Context) *logs.Entry {
-	if ctx != nil {
-		logger.WithContext(ctx)
-	}
+// SetLogger - sets custom logrus logger
+func SetLogger(log *logs.Logger) {
+	logger = log
+}
 
+func log(id string) *logs.Entry {
 	return logger.WithFields(logs.Fields{
-		"package": "flash",
+		"id": id,
 	})
 }

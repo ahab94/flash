@@ -2,6 +2,9 @@ package executors
 
 import (
 	"context"
+	"fmt"
+
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/ahab94/flash"
 )
@@ -16,8 +19,8 @@ type Concurrent struct {
 func NewConcurrent(ctx context.Context, dispatcher *flash.Dispatcher) *Concurrent {
 	return &Concurrent{
 		executor: executor{
-			name: "concurrent",
-			ctx:  ctx,
+			id:  fmt.Sprintf("%s-%s", "concurrent", uuid.NewV4().String()),
+			ctx: ctx,
 		},
 		dispatcher: dispatcher,
 	}

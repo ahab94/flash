@@ -2,7 +2,10 @@ package executors
 
 import (
 	"context"
+	"fmt"
 	"sync"
+
+	uuid "github.com/satori/go.uuid"
 
 	"github.com/ahab94/flash"
 )
@@ -17,8 +20,8 @@ type Parallel struct {
 func NewParallel(ctx context.Context) *Parallel {
 	return &Parallel{
 		executor: executor{
-			name: "parallel",
-			ctx:  ctx,
+			id:  fmt.Sprintf("%s-%s", "parallel", uuid.NewV4().String()),
+			ctx: ctx,
 		},
 		wg: &sync.WaitGroup{},
 	}
@@ -42,11 +45,13 @@ func (p *Parallel) executeWg() {
 			defer p.wg.Done()
 			if !p.executables[i].IsCompleted() {
 				if err := p.executables[i].Execute(); err != nil {
-					log(p.ctx, p.name).Errorf("error encountered: %+v", err)
+					log(p.id).Errorf("error while executing: %+v", err)
 					p.executables[i].OnFailure(err)
+					return
 				}
+				log(p.id).Infof("completed executing: %+v", p.executables[i])
+				p.executables[i].OnSuccess()
 			}
-			p.executables[i].OnSuccess()
 		}(i)
 	}
 	p.wg.Wait()
