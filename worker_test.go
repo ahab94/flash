@@ -3,11 +3,13 @@ package flash
 import (
 	"context"
 	"testing"
+
+	"github.com/ahab94/flash/utils"
 )
 
 func TestWorker_work(t *testing.T) {
 	type fields struct {
-		task *testTask
+		task *utils.TestTask
 	}
 	tests := []struct {
 		name   string
@@ -15,13 +17,13 @@ func TestWorker_work(t *testing.T) {
 		want   string
 	}{
 		{
-			name:   "success - execute test task - fail false",
-			fields: fields{task: &testTask{id: 0, fail: false, delay: "100ms"}},
+			name:   "success - execute test task - Fail false",
+			fields: fields{task: &utils.TestTask{ID: 0, Fail: false, Delay: "100ms"}},
 			want:   "completed",
 		},
 		{
-			name:   "fail - execute test task - fail true",
-			fields: fields{task: &testTask{id: 0, fail: true, delay: "100ms"}},
+			name:   "Fail - execute test task - Fail true",
+			fields: fields{task: &utils.TestTask{ID: 0, Fail: true, Delay: "100ms"}},
 			want:   "failed",
 		},
 	}
@@ -41,8 +43,8 @@ func TestWorker_work(t *testing.T) {
 			// execute task and wait for it to complete
 			w.input <- tt.fields.task
 			<-w.pool
-			if tt.fields.task.status != tt.want {
-				t.Errorf("worker <- task failed wanted: %s got %s", tt.want, tt.fields.task.status)
+			if tt.fields.task.Status != tt.want {
+				t.Errorf("worker <- task failed wanted: %s got %s", tt.want, tt.fields.task.Status)
 			}
 		})
 	}
@@ -62,7 +64,7 @@ func TestWorker_workParallel(t *testing.T) {
 
 	t.Parallel()
 	type fields struct {
-		task *testTask
+		task *utils.TestTask
 	}
 	tests := []struct {
 		name   string
@@ -70,33 +72,33 @@ func TestWorker_workParallel(t *testing.T) {
 		want   string
 	}{
 		{
-			name:   "success - execute test task 1 - fail false - delay 100ms",
-			fields: fields{task: &testTask{id: 1, fail: false, delay: "100ms"}},
+			name:   "success - execute test task 1 - Fail false - Delay 100ms",
+			fields: fields{task: &utils.TestTask{ID: 1, Fail: false, Delay: "100ms"}},
 			want:   "completed",
 		},
 		{
-			name:   "fail - execute test task 2 - delay 200ms - panic true",
-			fields: fields{task: &testTask{id: 2, delay: "200ms", panic: true}},
+			name:   "Fail - execute test task 2 - Delay 200ms - Panic true",
+			fields: fields{task: &utils.TestTask{ID: 2, Delay: "200ms", Panic: true}},
 			want:   "",
 		},
 		{
-			name:   "success - execute test task 3 - fail false - delay 300ms",
-			fields: fields{task: &testTask{id: 3, fail: false, delay: "300ms"}},
+			name:   "success - execute test task 3 - Fail false - Delay 300ms",
+			fields: fields{task: &utils.TestTask{ID: 3, Fail: false, Delay: "300ms"}},
 			want:   "completed",
 		},
 		{
-			name:   "fail - execute test task 4 - fail true - delay 400ms",
-			fields: fields{task: &testTask{id: 4, fail: true, delay: "400ms"}},
+			name:   "Fail - execute test task 4 - Fail true - Delay 400ms",
+			fields: fields{task: &utils.TestTask{ID: 4, Fail: true, Delay: "400ms"}},
 			want:   "failed",
 		},
 		{
-			name:   "success - execute test task 5 - fail false - delay 500ms",
-			fields: fields{task: &testTask{id: 5, fail: false, delay: "500ms"}},
+			name:   "success - execute test task 5 - Fail false - Delay 500ms",
+			fields: fields{task: &utils.TestTask{ID: 5, Fail: false, Delay: "500ms"}},
 			want:   "completed",
 		},
 		{
-			name:   "fail - execute test task 6 - delay 600ms - panic true",
-			fields: fields{task: &testTask{id: 6, delay: "600ms", panic: true}},
+			name:   "Fail - execute test task 6 - Delay 600ms - Panic true",
+			fields: fields{task: &utils.TestTask{ID: 6, Delay: "600ms", Panic: true}},
 			want:   "",
 		},
 	}
@@ -105,8 +107,8 @@ func TestWorker_workParallel(t *testing.T) {
 			// execute task and wait for it to complete
 			w.input <- tt.fields.task
 			<-w.pool
-			if tt.fields.task.status != tt.want {
-				t.Errorf("worker <- task failed wanted: %s got %s", tt.want, tt.fields.task.status)
+			if tt.fields.task.Status != tt.want {
+				t.Errorf("worker <- task failed wanted: %s got %s", tt.want, tt.fields.task.Status)
 			}
 		})
 	}

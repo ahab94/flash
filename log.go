@@ -12,12 +12,11 @@ func init() {
 
 // SetLogger - sets custom logrus logger
 func SetLogger(log *logs.Logger) {
-	log.SetLevel(logs.DebugLevel)
 	logger = log
 }
 
 func log(id string) *logs.Entry {
 	return logger.WithFields(logs.Fields{
-		"id": id,
+		"ID": id,
 	})
 }

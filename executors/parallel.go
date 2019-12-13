@@ -7,7 +7,7 @@ import (
 
 	uuid "github.com/satori/go.uuid"
 
-	"github.com/ahab94/flash"
+	"github.com/ahab94/flash/utils"
 )
 
 // Parallel is an executor for parallel executions
@@ -41,7 +41,7 @@ func (p *Parallel) executeWg() {
 	p.wg.Add(len(p.executables))
 	for i := 0; i < len(p.executables); i++ {
 		go func(i int) {
-			defer flash.RecoverPanic(p.ctx)
+			defer utils.RecoverPanic(p.ctx)
 			defer p.wg.Done()
 			if !p.executables[i].IsCompleted() {
 				if err := p.executables[i].Execute(); err != nil {

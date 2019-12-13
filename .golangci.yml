@@ -132,6 +132,8 @@ linters:
     - godox
     - errcheck
     - gosimple
+    - golint
+    - funlen
   # disable-all: false
   # presets:
   #   - bugs
