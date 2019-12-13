@@ -1,4 +1,4 @@
-package executors
+package flash
 
 import (
 	"context"

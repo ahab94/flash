@@ -1,17 +1,15 @@
-package executors
+package flash
 
 import (
 	"context"
 	"errors"
-
-	"github.com/ahab94/flash"
 )
 
 // executor outlines an executor
 type executor struct {
 	id          string
 	ctx         context.Context
-	executables []flash.Executable
+	executables []Executable
 }
 
 // Execute - executes all executables concurrently
@@ -40,7 +38,7 @@ func (e *executor) IsCompleted() bool {
 }
 
 // Add - adds an executable to the executables list
-func (e *executor) Add(executable flash.Executable) {
+func (e *executor) Add(executable Executable) {
 	e.executables = append(e.executables, executable)
 }
 

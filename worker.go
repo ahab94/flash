@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/ahab94/flash/utils"
-
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -39,12 +37,10 @@ func (w *Worker) Start() {
 
 // Stop - stops the Worker routine
 func (w *Worker) Stop() {
-	defer utils.RecoverPanic(w.ctx)
 	close(w.stop)
 }
 
 func (w *Worker) execute(exec Executable) {
-	defer utils.RecoverPanic(w.ctx)
 	defer w.counter.Done()
 	if !exec.IsCompleted() {
 		if err := exec.Execute(); err != nil {

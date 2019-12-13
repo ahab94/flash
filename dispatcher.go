@@ -6,8 +6,6 @@ import (
 	"sync"
 
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/ahab94/flash/utils"
 )
 
 // Dispatcher - for creating workers and distributing jobs
@@ -57,7 +55,6 @@ func (d *Dispatcher) Input() chan Executable {
 
 // Stop - closes channels/goroutines
 func (d *Dispatcher) Stop() {
-	defer utils.RecoverPanic(d.ctx)
 	defer func() { d.start = new(sync.Once) }()
 	for _, worker := range d.workers {
 		worker.Stop()

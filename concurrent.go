@@ -1,22 +1,20 @@
-package executors
+package flash
 
 import (
 	"context"
 	"fmt"
 
 	uuid "github.com/satori/go.uuid"
-
-	"github.com/ahab94/flash"
 )
 
 // Concurrent is an executor for concurrent executions
 type Concurrent struct {
 	executor
-	dispatcher *flash.Dispatcher
+	dispatcher *Dispatcher
 }
 
 // NewConcurrent - initializes concurrent executor
-func NewConcurrent(ctx context.Context, dispatcher *flash.Dispatcher) *Concurrent {
+func NewConcurrent(ctx context.Context, dispatcher *Dispatcher) *Concurrent {
 	return &Concurrent{
 		executor: executor{
 			id:  fmt.Sprintf("%s-%s", "concurrent", uuid.NewV4().String()),
