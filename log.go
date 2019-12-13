@@ -12,6 +12,7 @@ func init() {
 
 // SetLogger - sets custom logrus logger
 func SetLogger(log *logs.Logger) {
+	log.SetLevel(logs.DebugLevel)
 	logger = log
 }
 

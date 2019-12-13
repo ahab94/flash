@@ -3,10 +3,8 @@ package flash
 import (
 	"context"
 	"fmt"
-	"sync"
-	"time"
-
 	uuid "github.com/satori/go.uuid"
+	"sync"
 )
 
 // Dispatcher - for creating workers and distributing jobs
@@ -54,21 +52,9 @@ func (d *Dispatcher) Input() chan Executable {
 	return d.input
 }
 
-// IsWorking - returns true if dispatcher is working
-func (d *Dispatcher) IsWorking() bool {
-	return d.counter.Count() != 0
-}
-
-// Wait - waits until dispatcher completes all outstanding tasks
-func (d *Dispatcher) Wait() {
-	for d.IsWorking() {
-		time.Sleep(100 * time.Millisecond)
-		continue
-	}
-}
-
 // Stop - closes channels/goroutines
 func (d *Dispatcher) Stop() {
+	defer RecoverPanic(d.ctx)
 	defer func() { d.start = new(sync.Once) }()
 	for _, worker := range d.workers {
 		worker.Stop()
@@ -81,6 +67,7 @@ func (d *Dispatcher) dispatch() {
 		select {
 		case work := <-d.input:
 			log(d.id).Debugf("dispatching: %v", work)
+			d.counter.Add()
 			worker := <-d.pool
 			worker <- work
 

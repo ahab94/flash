@@ -5,8 +5,8 @@ import (
 )
 
 // RecoverPanic - used to avoid crashes following unexpected panic
-func RecoverPanic(ctx context.Context, executable Executable) {
+func RecoverPanic(ctx context.Context) {
 	if r := recover(); r != nil {
-		logger.Warnf("recovered from panic while executing job: %v", executable)
+		logger.Warnf("recovered from panic")
 	}
 }

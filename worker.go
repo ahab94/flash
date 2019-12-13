@@ -37,14 +37,14 @@ func (w *Worker) Start() {
 
 // Stop - stops the Worker routine
 func (w *Worker) Stop() {
+	defer RecoverPanic(w.ctx)
 	close(w.stop)
 }
 
 func (w *Worker) execute(exec Executable) {
+	defer RecoverPanic(w.ctx)
+	defer w.counter.Done()
 	if !exec.IsCompleted() {
-		defer RecoverPanic(w.ctx, exec)
-		defer w.counter.Done()
-		w.counter.Add()
 		if err := exec.Execute(); err != nil {
 			log(w.id).Errorf("error while executing: %v", exec)
 			exec.OnFailure(err)
