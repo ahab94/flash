@@ -5,7 +5,11 @@ import (
 	"testing"
 )
 
-func TestParallel_Execute(t *testing.T) {
+func TestConcurrent_Execute(t *testing.T) {
+	d := NewDispatcher(context.TODO())
+	d.Start(10)
+
+	t.Parallel()
 	type fields struct {
 		executables []Executable
 		completion  bool
@@ -25,17 +29,18 @@ func TestParallel_Execute(t *testing.T) {
 		},
 		{
 			name: "success - work all tasks - expect incomplete",
-			fields: fields{executables: []Executable{
-				&testTask{
-					ID:    1,
-					Fail:  true,
-					Delay: "2s",
-				}, &testTask{
-					ID:    2,
-					Fail:  false,
-					Delay: "100ms",
+			fields: fields{
+				executables: []Executable{
+					&testTask{
+						ID:    1,
+						Fail:  true,
+						Delay: "2s",
+					}, &testTask{
+						ID:    2,
+						Fail:  false,
+						Delay: "100ms",
+					},
 				},
-			},
 				completion: false,
 			},
 			wantErr: false,
@@ -43,14 +48,14 @@ func TestParallel_Execute(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewParallel(context.TODO())
+			c := NewConcurrent(context.TODO(), d)
 			for _, task := range tt.fields.executables {
-				p.Add(task)
+				c.Add(task)
 			}
-			if err := p.Execute(); (err != nil) != tt.wantErr {
+			if err := c.Execute(); (err != nil) != tt.wantErr {
 				t.Errorf("Execute() error = %v, wantErr %v", err, tt.wantErr)
 			}
-			if tt.fields.completion != p.IsCompleted() {
+			if tt.fields.completion != c.IsCompleted() {
 				t.Errorf("Execute() tasks expected to be completed but incomplete %+v", tt.fields.executables)
 			}
 		})

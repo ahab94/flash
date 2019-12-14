@@ -8,6 +8,7 @@ import (
 func TestSequence_Execute(t *testing.T) {
 	type fields struct {
 		executables []Executable
+		completion  bool
 	}
 	tests := []struct {
 		name    string
@@ -15,42 +16,42 @@ func TestSequence_Execute(t *testing.T) {
 		wantErr bool
 	}{
 		{
-			name: "success - execute all tasks",
-			fields: fields{executables: []Executable{
-				&testTask{
-					Fail:  false,
-					Delay: "100ms",
-				},
-				&testTask{
-					Fail:  false,
-					Delay: "200ms",
-				},
-			}},
+			name: "success - Work 10 tasks - expect complete",
+			fields: fields{
+				executables: nTasks(10),
+				completion:  true,
+			},
 			wantErr: false,
 		},
 		{
-			name: "fail - execute all tasks - fail true",
+			name: "success - work all tasks - expect incomplete",
 			fields: fields{executables: []Executable{
 				&testTask{
+					ID:    1,
 					Fail:  true,
+					Delay: "2s",
+				}, &testTask{
+					ID:    2,
+					Fail:  false,
 					Delay: "100ms",
 				},
-				&testTask{
-					Fail:  false,
-					Delay: "200ms",
-				},
-			}},
+			},
+				completion: false,
+			},
 			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			p := NewSequence(context.TODO())
+			s := NewSequence(context.TODO())
 			for _, task := range tt.fields.executables {
-				p.Add(task)
+				s.Add(task)
 			}
-			if err := p.Execute(); (err != nil) != tt.wantErr {
+			if err := s.Execute(); (err != nil) != tt.wantErr {
 				t.Errorf("Execute() error = %v, wantErr %v", err, tt.wantErr)
+			}
+			if tt.fields.completion != s.IsCompleted() {
+				t.Errorf("Execute() tasks expected to be completed but incomplete %+v", tt.fields.executables)
 			}
 		})
 	}

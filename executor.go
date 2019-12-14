@@ -15,10 +15,10 @@ type executor struct {
 // Execute - executes all executables concurrently
 func (e *executor) Execute() error {
 	if len(e.executables) < 1 {
-		return errors.New("nothing to execute")
+		return errors.New("nothing to Work")
 	}
 
-	log(e.id).Infof("processing %d items", len(e.executables)-1)
+	log(e.id).Infof("processing %d item(s)", len(e.executables))
 	return nil
 }
 

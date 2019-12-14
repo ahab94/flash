@@ -25,7 +25,7 @@ func NewParallel(ctx context.Context) *Parallel {
 	}
 }
 
-// Execute - executes all executables in parallel
+// Execute - executes all executables In parallel
 func (p *Parallel) Execute() error {
 	if err := p.executor.Execute(); err != nil {
 		return err

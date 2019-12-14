@@ -35,9 +35,19 @@ func (c *Concurrent) Execute() error {
 }
 
 func (c *Concurrent) executeDispatch() {
+	doneChans := make([]chan struct{}, 0)
 	for _, exec := range c.executables {
 		if !exec.IsCompleted() {
-			c.dispatcher.Input() <- exec
+			done := make(chan struct{})
+			c.dispatcher.input <- Work{
+				Executable: exec,
+				done:       done,
+			}
+			doneChans = append(doneChans, done)
 		}
+	}
+
+	for _, done := range doneChans {
+		<-done
 	}
 }

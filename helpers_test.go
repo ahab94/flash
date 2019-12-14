@@ -2,6 +2,8 @@ package flash
 
 import (
 	"errors"
+	"fmt"
+	"math/rand"
 	"time"
 )
 
@@ -36,4 +38,16 @@ func (t *testTask) OnSuccess() {
 
 func (t *testTask) IsCompleted() bool {
 	return t.Status == "completed"
+}
+
+func nTasks(n int) []Executable {
+	tasks := make([]Executable, 0)
+	for i := 0; i < n; i++ {
+		rand.Seed(time.Now().Unix())
+		tasks = append(tasks, &testTask{
+			ID:    i,
+			Delay: fmt.Sprintf("%dms", rand.Intn(999)),
+		})
+	}
+	return tasks
 }

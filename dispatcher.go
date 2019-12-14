@@ -13,10 +13,9 @@ type Dispatcher struct {
 	id      string
 	ctx     context.Context
 	stop    chan struct{}
-	pool    chan chan Executable
-	input   chan Executable
+	pool    chan chan Work
+	input   chan Work
 	workers []*Worker
-	counter *counter
 	start   *sync.Once
 }
 
@@ -33,24 +32,18 @@ func NewDispatcher(ctx context.Context) *Dispatcher {
 func (d *Dispatcher) Start(workerCount uint) {
 	d.start.Do(func() {
 		d.stop = make(chan struct{})
-		d.pool = make(chan chan Executable)
-		d.input = make(chan Executable)
+		d.pool = make(chan chan Work)
+		d.input = make(chan Work)
 		d.workers = make([]*Worker, 0)
-		d.counter = new(counter)
 
 		for i := 0; i <= int(workerCount); i++ {
-			worker := NewWorker(d.ctx, d.pool, d.counter)
+			worker := NewWorker(d.ctx, d.pool)
 			d.workers = append(d.workers, worker)
 			worker.Start()
 		}
 
 		go d.dispatch()
 	})
-}
-
-// Input - returns input channel for receiving tasks
-func (d *Dispatcher) Input() chan Executable {
-	return d.input
 }
 
 // Stop - closes channels/goroutines
@@ -67,7 +60,6 @@ func (d *Dispatcher) dispatch() {
 		select {
 		case work := <-d.input:
 			log(d.id).Debugf("dispatching: %v", work)
-			d.counter.Add()
 			worker := <-d.pool
 			worker <- work
 
