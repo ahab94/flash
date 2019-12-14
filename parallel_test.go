@@ -56,3 +56,16 @@ func TestParallel_Execute(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkParallel_Execute(b *testing.B) {
+	tasks := nTasks(1000)
+	p := NewParallel(context.TODO())
+	for _, task := range tasks {
+		p.Add(task)
+	}
+
+	b.ResetTimer()
+	if err := p.Execute(); err != nil {
+		b.Errorf("Execute() error = %v", err)
+	}
+}

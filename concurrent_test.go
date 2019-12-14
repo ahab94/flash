@@ -61,3 +61,18 @@ func TestConcurrent_Execute(t *testing.T) {
 		})
 	}
 }
+
+func BenchmarkConcurrent_Execute(b *testing.B) {
+	d := NewDispatcher(context.TODO())
+	d.Start(100)
+	tasks := nTasks(1000)
+	c := NewConcurrent(context.TODO(), d)
+	for _, task := range tasks {
+		c.Add(task)
+	}
+
+	b.ResetTimer()
+	if err := c.Execute(); err != nil {
+		b.Errorf("Execute() error = %v", err)
+	}
+}
