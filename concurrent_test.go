@@ -3,11 +3,13 @@ package flash
 import (
 	"context"
 	"testing"
+
+	"github.com/ahab94/engine"
 )
 
 func TestConcurrent_Execute(t *testing.T) {
-	d := NewDispatcher(context.TODO())
-	d.Start(10)
+	e := engine.NewEngine(context.TODO())
+	e.Start(10)
 
 	t.Parallel()
 	type fields struct {
@@ -48,7 +50,7 @@ func TestConcurrent_Execute(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			c := NewConcurrent(context.TODO(), d)
+			c := NewConcurrent(context.TODO(), e, true)
 			for _, task := range tt.fields.executables {
 				c.Add(task)
 			}
@@ -63,10 +65,10 @@ func TestConcurrent_Execute(t *testing.T) {
 }
 
 func BenchmarkConcurrent_Execute(b *testing.B) {
-	d := NewDispatcher(context.TODO())
-	d.Start(100)
+	e := engine.NewEngine(context.TODO())
+	e.Start(100)
 	tasks := nTasks(1000)
-	c := NewConcurrent(context.TODO(), d)
+	c := NewConcurrent(context.TODO(), e, true)
 	for _, task := range tasks {
 		c.Add(task)
 	}

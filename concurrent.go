@@ -4,23 +4,26 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/ahab94/engine"
 	uuid "github.com/satori/go.uuid"
 )
 
 // Concurrent is an executor for concurrent executions
 type Concurrent struct {
 	executor
-	dispatcher *Dispatcher
+	engine *engine.Engine
+	block  bool
 }
 
-// NewConcurrent - initializes concurrent executor
-func NewConcurrent(ctx context.Context, dispatcher *Dispatcher) *Concurrent {
+// NewConcurrent - initializes concurrent executor; if completionBlock=true, it will block main routine until all tasks completed
+func NewConcurrent(ctx context.Context, engine *engine.Engine, completionBlock bool) *Concurrent {
 	return &Concurrent{
 		executor: executor{
 			id:  fmt.Sprintf("%s-%s", "concurrent", uuid.NewV4().String()),
 			ctx: ctx,
 		},
-		dispatcher: dispatcher,
+		engine: engine,
+		block:  completionBlock,
 	}
 }
 
@@ -35,19 +38,17 @@ func (c *Concurrent) Execute() error {
 }
 
 func (c *Concurrent) executeDispatch() {
-	doneChans := make([]chan struct{}, 0)
+	doneChans := make([]<-chan struct{}, 0)
 	for _, exec := range c.executables {
 		if !exec.IsCompleted() {
-			done := make(chan struct{})
-			c.dispatcher.input <- Work{
-				Executable: exec,
-				done:       done,
-			}
+			done := c.engine.Do(exec)
 			doneChans = append(doneChans, done)
 		}
 	}
 
-	for _, done := range doneChans {
-		<-done
+	if c.block {
+		for _, done := range doneChans {
+			<-done
+		}
 	}
 }
