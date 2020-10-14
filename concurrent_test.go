@@ -2,7 +2,9 @@ package flash
 
 import (
 	"context"
+	"runtime"
 	"testing"
+	"time"
 
 	"github.com/ahab94/engine"
 )
@@ -45,7 +47,7 @@ func TestConcurrent_Execute(t *testing.T) {
 				},
 				completion: false,
 			},
-			wantErr: false,
+			wantErr: true,
 		},
 	}
 	for _, tt := range tests {
@@ -74,7 +76,11 @@ func BenchmarkConcurrent_Execute(b *testing.B) {
 	}
 
 	b.ResetTimer()
+	b.Logf("starting goroutines %d", runtime.NumGoroutine())
 	if err := c.Execute(); err != nil {
 		b.Errorf("Execute() error = %v", err)
 	}
+
+	time.Sleep(5 * time.Second)
+	b.Logf("ending goroutines %d", runtime.NumGoroutine())
 }

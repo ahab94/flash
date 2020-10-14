@@ -11,17 +11,41 @@ import (
 // Parallel is an executor for parallel executions
 type Parallel struct {
 	executor
-	wg *sync.WaitGroup
+	wg             *sync.WaitGroup
+	successHandler func()
+	failHandler    func(err error)
 }
 
+type ParallelOption func(parallel *Parallel)
+
 // NewParallel - initializes a parallel executor
-func NewParallel(ctx context.Context) *Parallel {
-	return &Parallel{
+func NewParallel(ctx context.Context, opts ...ParallelOption) *Parallel {
+	par := &Parallel{
 		executor: executor{
 			id:  fmt.Sprintf("%s-%s", "parallel", uuid.NewV4().String()),
 			ctx: ctx,
 		},
 		wg: &sync.WaitGroup{},
+	}
+
+	for _, opt := range opts {
+		opt(par)
+	}
+
+	return par
+}
+
+// ParallelFailHandler - inits fail handler
+func ParallelFailHandler(fail func(err error)) ParallelOption {
+	return func(p *Parallel) {
+		p.failHandler = fail
+	}
+}
+
+// ParallelSuccessHandler - inits success handler
+func ParallelSuccessHandler(success func()) ParallelOption {
+	return func(p *Parallel) {
+		p.successHandler = success
 	}
 }
 
@@ -52,4 +76,20 @@ func (p *Parallel) executeWg() {
 		}(i)
 	}
 	p.wg.Wait()
+}
+
+// OnSuccess - handles completion callback
+func (p *Parallel) OnSuccess() {
+	p.executor.OnSuccess()
+	if p.successHandler != nil {
+		p.successHandler()
+	}
+}
+
+// OnFailure - handles failure callback
+func (p *Parallel) OnFailure(err error) {
+	p.executor.OnFailure(err)
+	if p.failHandler != nil {
+		p.failHandler(err)
+	}
 }

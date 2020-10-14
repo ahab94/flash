@@ -10,15 +10,39 @@ import (
 // Sequence is an executor for sequential executions
 type Sequence struct {
 	executor
+	successHandler func()
+	failHandler    func(err error)
 }
 
+type SequenceOption func(*Sequence)
+
 // NewSequence - initializes a sequence executor
-func NewSequence(ctx context.Context) *Sequence {
-	return &Sequence{
+func NewSequence(ctx context.Context, opts ...SequenceOption) *Sequence {
+	seq := &Sequence{
 		executor: executor{
 			id:  fmt.Sprintf("%s-%s", "sequence", uuid.NewV4().String()),
 			ctx: ctx,
 		},
+	}
+
+	for _, opt := range opts {
+		opt(seq)
+	}
+
+	return seq
+}
+
+// SequenceFailHandler - inits fail handler
+func SequenceFailHandler(fail func(err error)) SequenceOption {
+	return func(s *Sequence) {
+		s.failHandler = fail
+	}
+}
+
+// SequenceSuccessHandler - inits success handler
+func SequenceSuccessHandler(success func()) SequenceOption {
+	return func(s *Sequence) {
+		s.successHandler = success
 	}
 }
 
@@ -40,4 +64,20 @@ func (s *Sequence) Execute() error {
 		}
 	}
 	return nil
+}
+
+// OnSuccess - handles completion callback
+func (s *Sequence) OnSuccess() {
+	s.executor.OnSuccess()
+	if s.successHandler != nil {
+		s.successHandler()
+	}
+}
+
+// OnFailure - handles failure callback
+func (s *Sequence) OnFailure(err error) {
+	s.executor.OnFailure(err)
+	if s.failHandler != nil {
+		s.failHandler(err)
+	}
 }
