@@ -74,6 +74,7 @@ func (c *Concurrent) executeDispatch() error {
 		success := true
 		for _, done := range doneChans {
 			if !success {
+				<-done
 				continue
 			}
 			success = <-done
