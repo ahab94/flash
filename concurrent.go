@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-
 	"github.com/ahab94/engine"
 	uuid "github.com/satori/go.uuid"
 )
@@ -12,10 +11,13 @@ import (
 // Concurrent is an executor for concurrent executions
 type Concurrent struct {
 	executor
-	engine         *engine.Engine
-	block          bool
-	successHandler func()
-	failHandler    func(err error)
+	engine           *engine.Engine
+	successHandler   func()
+	failHandler      func(err error)
+	aggregateInput   chan chan bool
+	aggregateOutput  chan bool
+	dispatchComplete bool
+	block            bool
 }
 
 type ConcurrentOption func(*Concurrent)
@@ -27,8 +29,10 @@ func NewConcurrent(ctx context.Context, engine *engine.Engine, completionBlock b
 			id:  fmt.Sprintf("%s-%s", "concurrent", uuid.NewV4().String()),
 			ctx: ctx,
 		},
-		engine: engine,
-		block:  completionBlock,
+		aggregateInput:  make(chan chan bool, engine.WorkerCount()),
+		aggregateOutput: make(chan bool),
+		engine:          engine,
+		block:           completionBlock,
 	}
 
 	for _, opt := range opts {
@@ -58,29 +62,22 @@ func (c *Concurrent) Execute() error {
 		return err
 	}
 
+	go c.aggregate()
+
 	return c.executeDispatch()
 }
 
 func (c *Concurrent) executeDispatch() error {
-	doneChans := make([]<-chan bool, 0)
 	for _, exec := range c.executables {
 		if !exec.IsCompleted() {
-			done := c.engine.Do(exec)
-			doneChans = append(doneChans, done)
+			c.aggregateInput <- c.engine.Do(exec)
 		}
 	}
 
-	if c.block {
-		success := true
-		for _, done := range doneChans {
-			if !success {
-				<-done
-				continue
-			}
-			success = <-done
-		}
+	c.dispatchComplete = true
 
-		if !success {
+	if c.block {
+		if !<-c.aggregateOutput {
 			return errors.New("failed to execute all tasks")
 		}
 	}
@@ -101,5 +98,28 @@ func (c *Concurrent) OnFailure(err error) {
 	c.executor.OnFailure(err)
 	if c.failHandler != nil {
 		c.failHandler(err)
+	}
+}
+
+func (c *Concurrent) aggregate() {
+	aggRes := true
+
+	for {
+		select {
+		case agg := <-c.aggregateInput:
+			log(c.id).Debugf("awaiting result %p", agg)
+			if !aggRes {
+				<-agg
+				continue
+			}
+
+			aggRes = <-agg
+		default:
+			if c.dispatchComplete {
+				log(c.id).Debugf("stopping aggregration...")
+				c.aggregateOutput <- aggRes
+				return
+			}
+		}
 	}
 }

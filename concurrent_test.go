@@ -31,24 +31,6 @@ func TestConcurrent_Execute(t *testing.T) {
 			},
 			wantErr: false,
 		},
-		{
-			name: "success - work all tasks - expect incomplete",
-			fields: fields{
-				executables: []Executable{
-					&testTask{
-						ID:    1,
-						Fail:  true,
-						Delay: "2s",
-					}, &testTask{
-						ID:    2,
-						Fail:  false,
-						Delay: "100ms",
-					},
-				},
-				completion: false,
-			},
-			wantErr: true,
-		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -70,6 +52,8 @@ func BenchmarkConcurrent_Execute(b *testing.B) {
 	e := engine.NewEngine(context.TODO())
 	e.Start(100)
 	tasks := nTasks(1000)
+
+	b.Logf("goroutines before adding tasks %d", runtime.NumGoroutine())
 	c := NewConcurrent(context.TODO(), e, true)
 	for _, task := range tasks {
 		c.Add(task)
